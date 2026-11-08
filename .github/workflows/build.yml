@@ -1,45 +1,76 @@
-name: Build APK
-on:
-  workflow_dispatch:
-  push:
-    branches: [main]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-      - name: Prepare app
-        run: |
-          mkdir www
-          cp index.html style.css app.js data.js sniper.jpg icon.png www/
-          npm init -y
-          npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
-          npx cap init "القناص" com.sniper.app --web-dir=www
-          npx cap add android
-          npx cap sync android
-      - name: App icon
-        run: |
-          sudo apt-get install -y imagemagick
-          R=android/app/src/main/res
-          rm -rf $R/mipmap-anydpi-v26
-          for s in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
-            d=${s%%:*}; z=${s##*:}
-            convert sniper.jpg -resize ${z}x${z}! $R/mipmap-$d/ic_launcher.png
-            cp $R/mipmap-$d/ic_launcher.png $R/mipmap-$d/ic_launcher_round.png
-          done
-      - name: Build APK
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sniper-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a0a08">
+<title>القناص – فلسفة ومنطق</title>
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.credit-hero{display:inline-block;margin-top:6px;font-size:12px;color:#f7c978;opacity:.9;
+  background:#00000055;border:1px solid #f2a33a44;padding:1px 12px;border-radius:99px}
+.credit-foot{text-align:center;color:#bfa396;font-size:13px;padding:22px 0 6px}
+.credit-foot b{color:#f2a33a}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <img src="sniper.jpg" alt="القناص" class="hero-img">
+  <div class="hero-shade"></div>
+  <div class="hero-text">
+    <span class="badge">أولى ثانوي</span>
+    <h1>القناص</h1>
+    <p>فلسفة ومنطق – الترم الأول</p>
+    <span class="credit-hero">تصميم وبرمجة: يوسف الصيرفي</span>
+  </div>
+</header>
+
+<main>
+  <section id="tab-summaries" class="tab active">
+    <div class="search"><input id="q" type="search" placeholder="ابحث في الملخصات..."></div>
+    <div id="chips" class="chips"></div>
+    <div id="summaries"></div>
+  </section>
+
+  <section id="tab-mindmap" class="tab">
+    <div class="toolbar">
+      <button id="expandAll">فتح الكل</button>
+      <button id="collapseAll">طي الكل</button>
+    </div>
+    <div id="mindmap" class="mindmap"></div>
+  </section>
+
+  <section id="tab-ask" class="tab">
+    <div class="ask-card">
+      <img src="icon.png" alt="" class="ask-avatar">
+      <h2>اسأل القناص</h2>
+      <p>اكتب سؤالك واضغط إرسال، وهيتفتح الواتساب بالسؤال جاهز.</p>
+      <form id="askForm">
+        <textarea id="question" rows="5" placeholder="اكتب سؤالك هنا..." required></textarea>
+        <button type="submit" class="send" aria-label="إرسال">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M2.5 21.5 23 12 2.5 2.5l-.01 7.4L16 12 2.49 14.1z"/></svg>
+          <span>إرسال</span>
+        </button>
+      </form>
+    </div>
+  </section>
+  <footer class="credit-foot">صُمّم هذا التطبيق بواسطة <b>يوسف الصيرفي</b></footer>
+</main>
+
+<nav class="tabbar">
+  <button data-tab="summaries" class="on">
+    <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 8h5M9 12h5"/></svg><span>ملخصات</span></button>
+  <button data-tab="mindmap">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="4.5" cy="5" r="1.8"/><circle cx="19.5" cy="5" r="1.8"/><circle cx="4.5" cy="19" r="1.8"/><circle cx="19.5" cy="19" r="1.8"/><path d="M6 6.2l3.9 3.9M18 6.2l-3.9 3.9M6 17.8l3.9-3.9M18 17.8l-3.9-3.9"/></svg><span>خريطة ذهنية</span></button>
+  <button data-tab="ask">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg><span>اسأل القناص</span></button>
+</nav>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
